@@ -49,6 +49,18 @@ static PF_Err ParamsSetup (PF_InData *in_data, PF_OutData *out_data, PF_ParamDef
 	//PF_END_TOPIC(SURFtopic_END_DISK_ID);
 
 	AEFX_CLR_STRUCT(def);
+	PF_ADD_FLOAT_SLIDERX("Size multiply",
+		0, 		// MIN
+		64,		// MAX
+		0,		// MIN
+		64, 	// MAX
+		1,		// Default
+		PF_Precision_HUNDREDTHS,
+		0,
+		0,
+		Sizemul_DISK_ID);
+
+	AEFX_CLR_STRUCT(def);
 	PF_ADD_SLIDER("Grid X",
 		1, 		// MIN
 		64,		// MAX
@@ -128,7 +140,7 @@ static PF_Err Render( PF_InData *in_data, PF_OutData *out_data, PF_ParamDef *par
 
 	for (it = keypoints.begin(); it != keypoints.end(); ++it) {
 		Point2f point = it->pt;
-		int size = (int)(it->size / 1.2);
+		int size = (int)(it->size / 1.2 * params[Param_Sizemul]->u.fs_d.value);
 
 		srcColor = src.at<Vec4b>(point);
 		Scalar color = Scalar(srcColor[0], srcColor[1], srcColor[2], 255);
