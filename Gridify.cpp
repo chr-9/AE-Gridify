@@ -14,10 +14,6 @@ static PF_Err ParamsSetup (PF_InData *in_data, PF_OutData *out_data, PF_ParamDef
 	PF_Err		err		= PF_Err_NONE;
 	PF_ParamDef	def;	
 
-	//AEFX_CLR_STRUCT(def);
-	//def.flags = PF_ParamFlag_START_COLLAPSED;
-	//PF_ADD_TOPIC( "featurepoint detection", SURFtopic_DISK_ID);
-	
 	AEFX_CLR_STRUCT(def);
 	PF_ADD_SLIDER("Threshold",
 		0, 		// MIN
@@ -45,9 +41,6 @@ static PF_Err ParamsSetup (PF_InData *in_data, PF_OutData *out_data, PF_ParamDef
 		4,		// Default
 		Layers_DISK_ID);
 
-	//AEFX_CLR_STRUCT(def);
-	//PF_END_TOPIC(SURFtopic_END_DISK_ID);
-
 	AEFX_CLR_STRUCT(def);
 	PF_ADD_FLOAT_SLIDERX("Size multiply",
 		0, 		// MIN
@@ -61,7 +54,7 @@ static PF_Err ParamsSetup (PF_InData *in_data, PF_OutData *out_data, PF_ParamDef
 		Sizemul_DISK_ID);
 
 	AEFX_CLR_STRUCT(def);
-	PF_ADD_SLIDER("Grid X",
+	PF_ADD_SLIDER("Grid Size X",
 		1, 		// MIN
 		64,		// MAX
 		1,		// MIN
@@ -70,7 +63,7 @@ static PF_Err ParamsSetup (PF_InData *in_data, PF_OutData *out_data, PF_ParamDef
 		GridX_DISK_ID);
 
 	AEFX_CLR_STRUCT(def);
-	PF_ADD_SLIDER("Grid Y",
+	PF_ADD_SLIDER("Grid Size Y",
 		1, 		// MIN
 		64,		// MAX
 		1,		// MIN
@@ -79,15 +72,38 @@ static PF_Err ParamsSetup (PF_InData *in_data, PF_OutData *out_data, PF_ParamDef
 		GridY_DISK_ID);
 
 	AEFX_CLR_STRUCT(def);
-	PF_ADD_SLIDER("Separation",
+	PF_ADD_SLIDER("Margin",
 		0, 		// MIN
 		64,		// MAX
 		0,		// MIN
 		64, 	// MAX
 		2,		// Default
-		Separation_DISK_ID);
+		Margin_DISK_ID);
 
-	out_data->num_params = SKELETON_NUM_PARAMS;
+	AEFX_CLR_STRUCT(def);
+	PF_ADD_SLIDER("Thickness",
+		1, 		// MIN
+		32,		// MAX
+		1,		// MIN
+		32, 	// MAX
+		1,		// Default
+		Thickness_DISK_ID);
+
+	AEFX_CLR_STRUCT(def);
+	PF_ADD_CHECKBOX("Fill",
+		"",			// Checkbox
+		TRUE,		// Default
+		0,
+		Fill_DISK_ID);
+
+	AEFX_CLR_STRUCT(def);
+	PF_ADD_CHECKBOX("Gridify",
+		"",			// Checkbox
+		TRUE,		// Default
+		0,
+		Gridify_DISK_ID);
+
+	out_data->num_params = GRIDIFY_NUM_PARAMS;
 	return err;
 }
 
@@ -102,6 +118,7 @@ static PF_Err Render( PF_InData *in_data, PF_OutData *out_data, PF_ParamDef *par
 	A_long height = output->height;
 	A_long outWidth = output->rowbytes / sizeof(PF_Pixel);
 	PF_Pixel *AEFrameData = (PF_Pixel *)output->data;
+
 
 	/* PF_Pixel > CvMat */
 	Mat src = Mat(Size(outWidth, height), CV_8UC4);		// 8bit BGRA
@@ -132,7 +149,10 @@ static PF_Err Render( PF_InData *in_data, PF_OutData *out_data, PF_ParamDef *par
 	int grid_y = params[Param_GridY]->u.sd.value;
 	int step_x = (int)(cvwidth / grid_x);
 	int step_y = (int)(cvheight / grid_y); 
-	int separation = params[Param_Separation]->u.sd.value + 1;
+	int margin = params[Param_Margin]->u.sd.value + 1;
+	int thickness = params[Param_Thickness]->u.sd.value;
+	bool fill = (PF_Boolean)params[Param_Fill]->u.sd.value;
+	bool gridify = (PF_Boolean)params[Param_Gridify]->u.sd.value;
 
 	/* gridify */
 	Mat canvas = cv::Mat(src.size(), CV_8UC4);
@@ -145,27 +165,46 @@ static PF_Err Render( PF_InData *in_data, PF_OutData *out_data, PF_ParamDef *par
 		srcColor = src.at<Vec4b>(point);
 		Scalar color = Scalar(srcColor[0], srcColor[1], srcColor[2], 255);
 
-		Point gridfy_pt;
-		Point gridfy_pt2;
-		for (int step = 0; step < step_x; ++step) {
-			if(point.x >= grid_x * step && point.x <= grid_x * (step+1)){
-				gridfy_pt.x = grid_x * step;
-				gridfy_pt2.x = grid_x * step + ((size / grid_x) * grid_x) - separation;
-				break;
+		if(gridify){
+			// Gridify Enabled
+			Point gridfy_pt;
+			Point gridfy_pt2;
+			for (int step = 0; step < step_x; ++step) {
+				if(point.x >= grid_x * step && point.x <= grid_x * (step+1)){
+					gridfy_pt.x = grid_x * step;
+					gridfy_pt2.x = grid_x * step + ((size / grid_x) * grid_x) - margin;
+					break;
+				}
 			}
-		}
-		for (int step = 0; step < step_y; ++step) {
-			if(point.y >= grid_y * step && point.y <= grid_y * (step+1)){
-				gridfy_pt.y = grid_y * step;
-				gridfy_pt2.y = grid_y * step + ((size / grid_y) * grid_y) - separation;
-				break;
+			for (int step = 0; step < step_y; ++step) {
+				if(point.y >= grid_y * step && point.y <= grid_y * (step+1)){
+					gridfy_pt.y = grid_y * step;
+					gridfy_pt2.y = grid_y * step + ((size / grid_y) * grid_y) - margin;
+					break;
+				}
 			}
-		}
 
-		if(gridfy_pt.x < gridfy_pt2.x && gridfy_pt2.x <= src.size().width && gridfy_pt2.y <= src.size().height){
-			if(canvas.at<Vec4b>(gridfy_pt)[3] == 0 && canvas.at<Vec4b>(gridfy_pt2)[3] == 0 && canvas.at<Vec4b>(Point(gridfy_pt2.x, gridfy_pt.y))[3] == 0 && canvas.at<Vec4b>(Point(gridfy_pt.x, gridfy_pt2.y))[3] == 0){
-				rectangle(canvas, gridfy_pt, gridfy_pt2, color, CV_FILLED);
+			if(gridfy_pt.x < gridfy_pt2.x && gridfy_pt2.x < src.size().width && gridfy_pt2.y < src.size().height){
+				if(canvas.at<Vec4b>(gridfy_pt)[3] == 0 && canvas.at<Vec4b>(gridfy_pt2)[3] == 0 && canvas.at<Vec4b>(Point(gridfy_pt2.x, gridfy_pt.y))[3] == 0 && canvas.at<Vec4b>(Point(gridfy_pt.x, gridfy_pt2.y))[3] == 0){
+					if(fill)
+						rectangle(canvas, gridfy_pt, gridfy_pt2, color, CV_FILLED);
+					else
+						rectangle(canvas, gridfy_pt, gridfy_pt2, color, thickness);
+				}
 			}
+		}else{
+			// Gridify Disabled
+			Point point2 = point;
+			point2.x += size;
+			point2.y += size;
+
+			if(point.x < point2.x && point2.x < src.size().width && point2.y < src.size().height){
+					if(fill)
+						rectangle(canvas, point, point2, color, CV_FILLED);
+					else
+						rectangle(canvas, point, point2, color, thickness);
+			}
+
 		}
 	}
 
@@ -204,7 +243,7 @@ static PF_Err GlobalSetup(PF_InData *in_data, PF_OutData *out_data, PF_ParamDef 
 		STAGE_VERSION,
 		BUILD_VERSION);
 
-	out_data->out_flags = PF_OutFlag_DEEP_COLOR_AWARE;
+	//out_data->out_flags = PF_OutFlag_DEEP_COLOR_AWARE;
 
 	return PF_Err_NONE;
 }

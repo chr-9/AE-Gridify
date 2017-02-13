@@ -43,8 +43,8 @@ resource 'PiPL' (16000) {
 			PF_PLUG_IN_SUBVERS
 		},
 		/* [8] */
-		AE_Effect_Version {
-			524289	/* 1.0 */
+		AE_Effect_Version {	
+			558593	/* MAJOR_VERSION*524288 + MINOR_VERSION*32768 + BUG_VERSION*2048 + STAGE_VERSION*512 + BUILD_VERSION */
 		},
 		/* [9] */
 		AE_Effect_Info_Flags {
@@ -52,15 +52,14 @@ resource 'PiPL' (16000) {
 		},
 		/* [10] */
 		AE_Effect_Global_OutFlags {
-		0x02000000 //50332160
-
+		0x00000000
 		},
 		AE_Effect_Global_OutFlags_2 {
 		0x00000000
 		},
 		/* [11] */
 		AE_Effect_Match_Name {
-			"ADBE gridify"
+			"gridify"
 		},
 		/* [12] */
 		AE_Reserved_Info {

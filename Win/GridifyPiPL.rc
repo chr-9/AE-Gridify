@@ -41,13 +41,13 @@ BEGIN
 	"RVSe", 
 	0, 0x0,
 	4, 0x0,
-	13, 7,
+	13, 14,
 
 	"MIB8",
 	0x65564552L, 
 	0L,
 	4L
-	524289L, 
+	558593L, 
 
 	"MIB8",
 	0x65494E46L, 
@@ -59,7 +59,7 @@ BEGIN
 	"OLGe", 
 	0L,
 	4L,
-	33554432L, 
+	0L, 
 
 	"MIB8",
 	"2LGe", 
@@ -70,8 +70,8 @@ BEGIN
 	"MIB8",
 	"ANMe",
 	0, 0x0,
-	16, 0x0,
-	"\x0CADBE gridify\0\0\0", 
+	8, 0x0,
+	"\x07gridify", 
 
 	"MIB8",
 	0x6165464CL, 

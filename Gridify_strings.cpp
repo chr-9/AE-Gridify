@@ -31,7 +31,7 @@ typedef struct {
 TableString		g_strs[StrID_NUMTYPES] = {
 	StrID_NONE,						"",
 	StrID_Name,						"Gridify",
-	StrID_Description,				"Gridify from SURF feature-point.",
+	StrID_Description,				"http://github.com/cryo9/AE-Gridify",
 };
 
 

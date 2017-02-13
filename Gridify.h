@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef SKELETON_H
-#define SKELETON_H
+#ifndef GRIDIFY_H
+#define GRIDIFY_H
 
 typedef unsigned char		u_char;
 typedef unsigned short		u_short;
@@ -37,24 +37,27 @@ typedef short int			int16;
 /* Versioning information */
 
 #define	MAJOR_VERSION	1
-#define	MINOR_VERSION	0
+#define	MINOR_VERSION	1
 #define	BUG_VERSION		0
-#define	STAGE_VERSION	PF_Stage_DEVELOP
+#define	STAGE_VERSION	PF_Stage_RELEASE
 #define	BUILD_VERSION	1
 
 
 /* Parameter defaults */
 
 enum {
-	SKELETON_INPUT = 0,
+	GRIDIFY_INPUT = 0,
 	Param_Threshold,
 	Param_Octaves,
 	Param_Layers,
 	Param_Sizemul,
 	Param_GridX,
 	Param_GridY,
-	Param_Separation,
-	SKELETON_NUM_PARAMS
+	Param_Margin,
+	Param_Thickness,
+	Param_Fill,
+	Param_Gridify,
+	GRIDIFY_NUM_PARAMS
 };
 
 enum {
@@ -64,7 +67,10 @@ enum {
 	Sizemul_DISK_ID,
 	GridX_DISK_ID,
 	GridY_DISK_ID,
-	Separation_DISK_ID,
+	Margin_DISK_ID,
+	Thickness_DISK_ID,
+	Fill_DISK_ID,
+	Gridify_DISK_ID,
 };
 
 
@@ -85,4 +91,4 @@ EntryPointFunc(
 }
 #endif
 
-#endif // SKELETON_H
+#endif // GRIDIFY_H
