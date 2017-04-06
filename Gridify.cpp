@@ -165,46 +165,52 @@ static PF_Err Render( PF_InData *in_data, PF_OutData *out_data, PF_ParamDef *par
 		srcColor = src.at<Vec4b>(point);
 		Scalar color = Scalar(srcColor[0], srcColor[1], srcColor[2], 255);
 
-		if(gridify){
-			// Gridify Enabled
-			Point gridfy_pt;
-			Point gridfy_pt2;
-			for (int step = 0; step < step_x; ++step) {
-				if(point.x >= grid_x * step && point.x <= grid_x * (step+1)){
-					gridfy_pt.x = grid_x * step;
-					gridfy_pt2.x = grid_x * step + ((size / grid_x) * grid_x) - margin;
-					break;
+		if(size > 0){
+			// Centering
+			point.x -= size / 2;
+			point.y -= size / 2;
+			
+			if(gridify){
+				// Gridify Enabled
+				Point gridfy_pt;
+				Point gridfy_pt2;
+				for (int step = 0; step < step_x; ++step) {
+					if(point.x >= grid_x * step && point.x <= grid_x * (step+1)){
+						gridfy_pt.x = grid_x * step;
+						gridfy_pt2.x = grid_x * step + ((size / grid_x) * grid_x) - margin;
+						break;
+					}
+				}
+				for (int step = 0; step < step_y; ++step) {
+					if(point.y >= grid_y * step && point.y <= grid_y * (step+1)){
+						gridfy_pt.y = grid_y * step;
+						gridfy_pt2.y = grid_y * step + ((size / grid_y) * grid_y) - margin;
+						break;
+					}
+				}
+
+				if(gridfy_pt.x < gridfy_pt2.x && gridfy_pt2.x < cvwidth && gridfy_pt2.y < cvheight){
+					if(canvas.at<Vec4b>(gridfy_pt)[3] == 0 && canvas.at<Vec4b>(gridfy_pt2)[3] == 0 && canvas.at<Vec4b>(Point(gridfy_pt2.x, gridfy_pt.y))[3] == 0 && canvas.at<Vec4b>(Point(gridfy_pt.x, gridfy_pt2.y))[3] == 0){
+						if(fill)
+							rectangle(canvas, gridfy_pt, gridfy_pt2, color, CV_FILLED);
+						else
+							rectangle(canvas, gridfy_pt, gridfy_pt2, color, thickness);
+					}
+				}
+			}else{
+				// Gridify Disabled
+				Point point2 = point;
+
+				point2.x += size;
+				point2.y += size;
+
+				if(point.x < point2.x && point2.x < cvwidth && point2.y < cvheight){
+						if(fill)
+							rectangle(canvas, point, point2, color, CV_FILLED);
+						else
+							rectangle(canvas, point, point2, color, thickness);
 				}
 			}
-			for (int step = 0; step < step_y; ++step) {
-				if(point.y >= grid_y * step && point.y <= grid_y * (step+1)){
-					gridfy_pt.y = grid_y * step;
-					gridfy_pt2.y = grid_y * step + ((size / grid_y) * grid_y) - margin;
-					break;
-				}
-			}
-
-			if(gridfy_pt.x < gridfy_pt2.x && gridfy_pt2.x < src.size().width && gridfy_pt2.y < src.size().height){
-				if(canvas.at<Vec4b>(gridfy_pt)[3] == 0 && canvas.at<Vec4b>(gridfy_pt2)[3] == 0 && canvas.at<Vec4b>(Point(gridfy_pt2.x, gridfy_pt.y))[3] == 0 && canvas.at<Vec4b>(Point(gridfy_pt.x, gridfy_pt2.y))[3] == 0){
-					if(fill)
-						rectangle(canvas, gridfy_pt, gridfy_pt2, color, CV_FILLED);
-					else
-						rectangle(canvas, gridfy_pt, gridfy_pt2, color, thickness);
-				}
-			}
-		}else{
-			// Gridify Disabled
-			Point point2 = point;
-			point2.x += size;
-			point2.y += size;
-
-			if(point.x < point2.x && point2.x < src.size().width && point2.y < src.size().height){
-					if(fill)
-						rectangle(canvas, point, point2, color, CV_FILLED);
-					else
-						rectangle(canvas, point, point2, color, thickness);
-			}
-
 		}
 	}
 
